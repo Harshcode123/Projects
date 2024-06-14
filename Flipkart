@@ -28,7 +28,7 @@ csv_file = 'product_names.csv'
 
 product_names = []
 
-for i in range(10):
+for i in range(len(comment)):
     try:
         product_name = comment[i].find('div', {'class': '_4WELSP'}).find('img')['alt']
         product_names.append(product_name)
