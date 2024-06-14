@@ -1,0 +1,41 @@
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from bs4 import BeautifulSoup
+import pandas as pd
+import csv
+import time
+
+url = 'https://www.flipkart.com/'
+#path = 'C:\\Users\\Dell\\Desktop\\jupyter projects\\chromedriver'
+service = Service(executable_path='chromedriver.exe')
+driver = webdriver.Chrome(service=service)
+driver.get(url)
+input_element = driver.find_element(By.CLASS_NAME,'Pke_EE')
+input_element.send_keys('iphone'+Keys.ENTER)
+driver.find_element(By.CLASS_NAME,'CGtC98').click()
+
+page_source = driver.page_source
+soup = BeautifulSoup(page_source, 'html.parser')
+comment = soup.find_all('div',{'class':'cPHDOP col-12-12'})
+#comment.div
+#print(comment.find_all('div',{'class':'RcXBOT'}))
+#print(comment[3].div.find_all('div',{'class':'_4WELSP'})[0].['alt']))
+
+
+csv_file = 'product_names.csv'
+
+product_names = []
+
+for i in range(10):
+    try:
+        product_name = comment[i].find('div', {'class': '_4WELSP'}).find('img')['alt']
+        product_names.append(product_name)
+    except AttributeError:
+        continue
+df = pd.DataFrame(product_names, columns=['Product_Name'])
+csv_file = 'product_names.csv'
+df.to_csv(csv_file, index=False)
+#time.sleep(10)
+driver.quit()
