@@ -1,0 +1,76 @@
+import csv
+import time
+from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
+
+# Define the URL and initialize the WebDriver instance
+url = "https://dashboard.traqo.in/"
+service = Service(executable_path='chromedriver.exe')
+
+# Create a new instance of the Chrome driver
+driver = webdriver.Chrome(service=service)
+
+# Navigate to the URL
+driver.get(url)
+
+# Input username and password, then login
+input_element = driver.find_element(By.CLASS_NAME, 'form-control')
+input_element.send_keys('8860100881' + Keys.ENTER)
+
+input_element = driver.find_element(By.ID, 'password')
+input_element.send_keys('8860100881@123' + Keys.ENTER)
+
+# Click on the dashboard icon
+icon_element = driver.find_element(By.CLASS_NAME, 'now-ui-icons.shopping_delivery-fast')
+icon_element.click()
+
+# Wait for the map link to be clickable and click it
+link_locator = (By.XPATH, "//a[@class='navbar-brand' and @href='/map/']")
+WebDriverWait(driver, 10).until(EC.element_to_be_clickable(link_locator))
+
+link_element = driver.find_element(*link_locator)
+link_element.click()
+
+time.sleep(20)  # Wait for the table to load (adjust as necessary)
+
+# Get page source after waiting
+page_source = driver.page_source
+
+# Use BeautifulSoup to parse the page source
+soup = BeautifulSoup(page_source, 'html.parser')
+
+# Find the table by its ID or class (adjust this based on your actual HTML structure)
+table = soup.find('table', {'id': 'mTable'})
+
+# Extract table headers
+headers = [header.text.strip() for header in table.find('thead').find_all('td')]
+
+# Extract table rows
+rows = []
+for row in table.find('tbody', {'id': 'show_table'}).find_all('tr'):
+    cells = [cell.text.strip() for cell in row.find_all('td')]
+    rows.append(cells)
+
+# Close the WebDriver
+driver.quit()
+
+# Append table data to CSV file
+csv_filename = 'traqo_data.csv'
+with open(csv_filename, 'a', newline='', encoding='utf-8') as csvfile:
+    writer = csv.writer(csvfile)
+    
+    # Write headers if file is empty
+    if csvfile.tell() == 0:
+        writer.writerow(headers)
+    
+    # Write rows
+    for row in rows:
+        writer.writerow(row)
+
+print(f"Table data appended to '{csv_filename}'")
